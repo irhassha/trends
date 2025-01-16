@@ -1,18 +1,12 @@
 import streamlit as st
 import pandas as pd
-from model import arima_forecast  # Import fungsi dari model.py
+from statsmodels.tsa.arima.model import ARIMA
 
 # Judul aplikasi
 st.title('Forecasting Pergerakan Kontainer')
 
 # URL file CSV di Github (ganti dengan URL Anda)
 url = "https://raw.githubusercontent.com/irhassha/trends/refs/heads/main/data/container_data.csv"
-
-# Baca data dari URL
-df = pd.read_csv(url)
-
-# Baca data dari URL
-df = pd.read_csv(url)
 
 # Baca data dari URL
 df = pd.read_csv(url)
