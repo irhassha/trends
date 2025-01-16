@@ -12,8 +12,8 @@ url = "https://github.com/irhassha/trends/blob/main/data/container_data.csv"
 df = pd.read_csv(url)
 
     # Preprocessing data (sama seperti di contoh sebelumnya)
-    df['Gate In'] = pd.to_datetime(df['Gate In'])
-    df_agg = df.groupby([pd.Grouper(key='Gate In', freq='D'), 'Movement']).size().reset_index(name='Count')
+    df['Gate in'] = pd.to_datetime(df['Gate in'])
+    df_agg = df.groupby([pd.Grouper(key='Gate in', freq='D'), 'Movement']).size().reset_index(name='Count')
     df_rec = df_agg[df_agg['Movement'] == 'REC']
     df_del = df_agg[df_agg['Movement'] == 'DEL']
 
