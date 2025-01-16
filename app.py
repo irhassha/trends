@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
-print(df.columns)
-
 # Judul aplikasi
 st.title('Forecasting Pergerakan Kontainer')
 
@@ -11,7 +9,7 @@ st.title('Forecasting Pergerakan Kontainer')
 url = "https://raw.githubusercontent.com/irhassha/trends/refs/heads/main/data/container_data.csv"
 
 # Baca data dari URL
-df = pd.read_csv(url)
+df = pd.read_csv(url, sep=';')
 
 # Preprocessing data
 df['Gate in'] = pd.to_datetime(df['Gate in'])
