@@ -6,7 +6,7 @@ from model import arima_forecast  # Import fungsi dari model.py
 st.title('Forecasting Pergerakan Kontainer')
 
 # URL file CSV di Github (ganti dengan URL Anda)
-url = "https://github.com/irhassha/trends/blob/main/data/container_data.csv"
+url = "https://raw.githubusercontent.com/irhassha/trends/refs/heads/main/data/container_data.csv"
 
 # Baca data dari URL
 df = pd.read_csv(url)
