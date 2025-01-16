@@ -12,7 +12,7 @@ url = "https://raw.githubusercontent.com/irhassha/trends/refs/heads/main/data/co
 df = pd.read_csv(url, sep=';')
 
 # Preprocessing data
-df['Gate in'] = pd.to_datetime(df['Gate in'])
+df['Gate in'] = pd.to_datetime(df['Gate in'], format='%d/%m/%Y %H:%M')
 df_agg = df.groupby([pd.Grouper(key='Gate in', freq='D'), 'Movement']).size().reset_index(name='Count')
 df_rec = df_agg[df_agg['Movement'] == 'REC']
 df_del = df_agg[df_agg['Movement'] == 'DEL']
