@@ -14,9 +14,12 @@ df = pd.read_csv(url)
 # Baca data dari URL
 df = pd.read_csv(url)
 
+# Baca data dari URL
+df = pd.read_csv(url)
+
 # Preprocessing data
-df['Gate in'] = pd.to_datetime(df['Gate in'])  # Note the correction: 'Gate in' instead of 'Gate in'
-df_agg = df.groupby([pd.Grouper(key='Gate in', freq='D'), 'Movement']).size().reset_index(name='Count')
+df['Gate In'] = pd.to_datetime(df['Gate In'])  # Note the correction: 'Gate In' instead of 'Gate in'
+df_agg = df.groupby([pd.Grouper(key='Gate In', freq='D'), 'Movement']).size().reset_index(name='Count')
 df_rec = df_agg[df_agg['Movement'] == 'REC']
 df_del = df_agg[df_agg['Movement'] == 'DEL']
 
@@ -48,6 +51,5 @@ if st.button('Jalankan Forecasting'):
     st.write("**DEL:**")
     st.write(forecast_del)
 
-
-        # Visualisasi (opsional)
-        # ...
+    # Visualisasi (opsional)
+    # ...
