@@ -5,12 +5,11 @@ from model import arima_forecast  # Import fungsi dari model.py
 # Judul aplikasi
 st.title('Forecasting Pergerakan Kontainer')
 
-# Upload file CSV
-uploaded_file = st.file_uploader("Upload file data kontainer (CSV)", type="csv")
+# URL file CSV di Github (ganti dengan URL Anda)
+url = "https://github.com/irhassha/trends/blob/main/data/container_data.csv"
 
-if uploaded_file is not None:
-    # Baca data
-    df = pd.read_csv(uploaded_file)
+# Baca data dari URL
+df = pd.read_csv(url)
 
     # Preprocessing data (sama seperti di contoh sebelumnya)
     df['Gate In'] = pd.to_datetime(df['Gate In'])
