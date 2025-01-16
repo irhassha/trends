@@ -1,49 +1,72 @@
 import streamlit as st
 import pandas as pd
-from statsmodels.tsa.arima.model import ARIMA
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
-# Judul aplikasi
-st.title('Forecasting Pergerakan Kontainer')
+# Title and file upload
+st.title("Container Yard Analysis App")
+st.write("Upload your CSV file containing container yard data.")
 
-# URL file CSV di Github (ganti dengan URL Anda)
-url = "https://raw.githubusercontent.com/irhassha/trends/refs/heads/main/data/container_data.csv"
+# File upload
+uploaded_file = st.file_uploader("Upload CSV", type="csv")
+if uploaded_file:
+    # Read the data
+    data = pd.read_csv(uploaded_file, sep=';')
+    data['Gate in'] = pd.to_datetime(data['Gate in'])
+    data['Day'] = data['Gate in'].dt.day_name()
 
-# Baca data dari URL
-df = pd.read_csv(url, sep=';')
+    # Filter REC and DEL
+    rec_data = data[data['MOVEMENT'] == 'REC']
+    del_data = data[data['MOVEMENT'] == 'DEL']
 
-# Preprocessing data
-df['Gate in'] = pd.to_datetime(df['Gate in'], format='%d/%m/%Y %H:%M')
-df_agg = df.groupby([pd.Grouper(key='Gate in', freq='D'), 'Movement']).size().reset_index(name='Count')
-df_rec = df_agg[df_agg['Movement'] == 'REC']
-df_del = df_agg[df_agg['Movement'] == 'DEL']
+    st.header("1. Average Movement per Day")
+    option = st.selectbox("Choose Movement Type", ["REC", "DEL"])
+    if option == "REC":
+        daily_avg = rec_data.groupby('Day').size().reindex(
+            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        )
+    else:
+        daily_avg = del_data.groupby('Day').size().reindex(
+            ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        )
 
-# Input jumlah hari untuk forecasting
-forecast_days = st.number_input("Jumlah hari untuk forecasting:", min_value=1, value=7)
+    st.bar_chart(daily_avg)
+    st.write("Daily Average:", daily_avg)
 
-# Tombol untuk menjalankan forecasting
-if st.button('Jalankan Forecasting'):
-    # Jalankan forecasting (ganti order ARIMA dengan nilai yang sesuai)
-    order_rec = (5, 1, 0)
-    order_del = (5, 1, 0)
+    st.header("2. Average per Service (DAY 1 to DAY 7)")
+    service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
+    if service_option == "REC":
+        grouped_data = rec_data.groupby(['SERVICE', 'VESSEL ID']).size()
+    else:
+        grouped_data = del_data.groupby(['SERVICE', 'VESSEL ID']).size()
 
-    # Buat model ARIMA untuk REC
-    model_rec = ARIMA(df_rec['Count'], order=order_rec)
-    model_fit_rec = model_rec.fit()
+    service_summary = grouped_data.groupby(level=0).mean().reset_index(name="Average Containers")
+    st.write(service_summary)
 
-    # Buat model ARIMA untuk DEL
-    model_del = ARIMA(df_del['Count'], order=order_del)
-    model_fit_del = model_del.fit()
+    st.header("3. Forecasting REC and DEL")
+    forecast_option = st.selectbox("Choose Movement Type for Forecasting", ["REC", "DEL"])
+    forecast_days = st.number_input("Number of days to forecast", min_value=1, max_value=30, value=7)
 
-    # Forecasting
-    forecast_rec = model_fit_rec.forecast(steps=forecast_days)
-    forecast_del = model_fit_del.forecast(steps=forecast_days)
+    if forecast_option == "REC":
+        forecast_data = rec_data.groupby('Gate in').size().resample('D').sum()
+    else:
+        forecast_data = del_data.groupby('Gate in').size().resample('D').sum()
 
-    # Tampilkan hasil forecasting
-    st.write("### Hasil Forecasting:")
-    st.write("**REC:**")
-    st.write(forecast_rec)
-    st.write("**DEL:**")
-    st.write(forecast_del)
+    # Fill missing dates with 0
+    forecast_data = forecast_data.fillna(0)
 
-    # Visualisasi (opsional)
-    # ...
+    # Model fitting and forecasting
+    model = ExponentialSmoothing(forecast_data, seasonal="add", seasonal_periods=7)
+    model_fit = model.fit()
+    forecast = model_fit.forecast(forecast_days)
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.plot(forecast_data.index, forecast_data, label="Actual")
+    plt.plot(forecast.index, forecast, label="Forecast", linestyle="--")
+    plt.title(f"Forecasting {forecast_option} for {forecast_days} days")
+    plt.xlabel("Date")
+    plt.ylabel("Number of Containers")
+    plt.legend()
+    st.pyplot(plt)
