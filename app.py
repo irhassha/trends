@@ -9,7 +9,7 @@ st.title("Container Yard Analysis App")
 
 # Read the data directly from the repository file
 data = pd.read_csv('container_data.csv', sep=';')
-data['Gate in'] = pd.to_datetime(data['Gate in'])
+data['Gate in'] = pd.to_datetime(data['Gate in'], format='%d/%m/%Y %H:%M', errors='coerce')
 data['Day'] = data['Gate in'].dt.day_name()
 
 # Filter REC and DEL
