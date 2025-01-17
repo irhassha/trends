@@ -8,7 +8,7 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 st.title("Container Yard Analysis App")
 
 # Read the data directly from the repository file
-data = pd.read_csv('container_data.csv', sep=';')
+data = pd.read_csv('data.csv', sep=';')
 data['Gate in'] = pd.to_datetime(data['Gate in'], format='%d/%m/%Y %H:%M', errors='coerce')
 data['Day'] = data['Gate in'].dt.day_name()
 data['Day Number'] = (data['Gate in'] - data['Gate in'].min()).dt.days + 1
@@ -34,17 +34,35 @@ st.write("Daily Average:", daily_avg)
 st.header("2. Average per Service (DAY 1 to DAY 7)")
 service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
 if service_option == "REC":
-    grouped_data = rec_data.groupby(['SERVICE', 'Day Number']).size().unstack(fill_value=0)
+    # Group by SERVICE, Day Number, and Vessel (Vessel ID + Voyage)
+    grouped = rec_data.groupby(['SERVICE', 'Day Number', 'VESSEL ID', 'VOYAGE']).size()
+
+    # Sum containers per Day Number per Service
+    total_per_day = grouped.groupby(['SERVICE', 'Day Number']).sum()
+
+    # Count Vessel ID + Voyage combinations per Day Number per Service
+    vessel_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
+
+    # Calculate average per day per service
+    average_per_day_per_service = (total_per_day / vessel_count_per_day).unstack(fill_value=0)
 else:
-    grouped_data = del_data.groupby(['SERVICE', 'Day Number']).size().unstack(fill_value=0)
+    # Group by SERVICE, Day Number, and Vessel (Vessel ID + Voyage)
+    grouped = del_data.groupby(['SERVICE', 'Day Number', 'VESSEL ID', 'VOYAGE']).size()
 
-# Calculate average for Day 1 to Day 7 per service
-grouped_data = grouped_data.iloc[:, :7]
-service_summary = grouped_data.mean(axis=1).reset_index(name="Average Containers")
+    # Sum containers per Day Number per Service
+    total_per_day = grouped.groupby(['SERVICE', 'Day Number']).sum()
 
-st.write("Average per Service per Day (Day 1 to Day 7):")
-st.write(grouped_data)
-st.write(service_summary)
+    # Count Vessel ID + Voyage combinations per Day Number per Service
+    vessel_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
+
+    # Calculate average per day per service
+    average_per_day_per_service = (total_per_day / vessel_count_per_day).unstack(fill_value=0)
+
+# Keep only Day 1 to Day 7
+average_per_day_per_service = average_per_day_per_service.iloc[:, :7]
+
+st.write("Average Containers Per Service (Day 1 to Day 7):")
+st.write(average_per_day_per_service)
 
 st.header("3. Forecasting REC and DEL")
 forecast_option = st.selectbox("Choose Movement Type for Forecasting", ["REC", "DEL"])
