@@ -31,32 +31,62 @@ else:
 st.bar_chart(daily_avg)
 st.write("Daily Average:", daily_avg)
 
-st.header("2. Average per Service (DAY 1 to DAY 7)")
+st.header("2. Total and Average per Service (DAY 1 to DAY 7)")
 service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
 if service_option == "REC":
+    # Group by SERVICE and Voyage
+    grouped = rec_data.groupby(['SERVICE', 'VOYAGE']).size()
+
+    # Sum containers per Service
+    total_containers_per_service = grouped.groupby('SERVICE').sum()
+
+    # Count unique Voyage combinations per Service
+    unique_voyages_per_service = grouped.groupby('SERVICE').size()
+
+    st.write("Total Containers Per Service:")
+    st.write(total_containers_per_service)
+
+    st.write("Unique Voyage Combinations Per Service:")
+    st.write(unique_voyages_per_service)
+
     # Group by SERVICE, Day Number, and Voyage
     grouped = rec_data.groupby(['SERVICE', 'Day Number', 'VOYAGE']).size()
 
     # Sum containers per Day Number per Service
     total_per_day = grouped.groupby(['SERVICE', 'Day Number']).sum()
 
-    # Count Vessel ID + Voyage combinations per Day Number per Service
-    vessel_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
+    # Count Voyage combinations per Day Number per Service
+    voyage_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
 
     # Calculate average per day per service
-    average_per_day_per_service = (total_per_day / vessel_count_per_day).unstack(fill_value=0)
+    average_per_day_per_service = (total_per_day / voyage_count_per_day).unstack(fill_value=0)
 else:
-    # Group by SERVICE, Day Number, and Vessel (Vessel ID + Voyage)
-    grouped = del_data.groupby(['SERVICE', 'Day Number', 'VESSEL ID', 'VOYAGE']).size()
+    # Group by SERVICE and Voyage
+    grouped = del_data.groupby(['SERVICE', 'VOYAGE']).size()
+
+    # Sum containers per Service
+    total_containers_per_service = grouped.groupby('SERVICE').sum()
+
+    # Count unique Voyage combinations per Service
+    unique_voyages_per_service = grouped.groupby('SERVICE').size()
+
+    st.write("Total Containers Per Service:")
+    st.write(total_containers_per_service)
+
+    st.write("Unique Voyage Combinations Per Service:")
+    st.write(unique_voyages_per_service)
+
+    # Group by SERVICE, Day Number, and Voyage
+    grouped = del_data.groupby(['SERVICE', 'Day Number', 'VOYAGE']).size()
 
     # Sum containers per Day Number per Service
     total_per_day = grouped.groupby(['SERVICE', 'Day Number']).sum()
 
-    # Count Vessel ID + Voyage combinations per Day Number per Service
-    vessel_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
+    # Count Voyage combinations per Day Number per Service
+    voyage_count_per_day = grouped.groupby(['SERVICE', 'Day Number']).size()
 
     # Calculate average per day per service
-    average_per_day_per_service = (total_per_day / vessel_count_per_day).unstack(fill_value=0)
+    average_per_day_per_service = (total_per_day / voyage_count_per_day).unstack(fill_value=0)
 
 # Keep only Day 1 to Day 7
 average_per_day_per_service = average_per_day_per_service.iloc[:, :7]
