@@ -47,11 +47,17 @@ if service_option == "REC":
     # Count unique Voyage combinations per Service (after filtering)
     unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
 
-    st.write("Total Containers Per Service:")
-    st.write(total_containers_per_service)
+    # Calculate average per service
+    average_per_service = total_containers_per_service / unique_voyages_per_service
 
-    st.write("Unique Voyage Combinations Per Service:")
-    st.write(unique_voyages_per_service)
+    # Combine total and average into one DataFrame
+    service_summary = pd.DataFrame({
+        "Total Containers": total_containers_per_service,
+        "Average per Voyage": average_per_service
+    })
+
+    st.write("Summary of Containers Per Service:")
+    st.write(service_summary)
 
     # Group by SERVICE, Day Number, and Voyage
     filtered_grouped = rec_data[rec_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
@@ -79,11 +85,17 @@ else:
     # Count unique Voyage combinations per Service (after filtering)
     unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
 
-    st.write("Total Containers Per Service:")
-    st.write(total_containers_per_service)
+    # Calculate average per service
+    average_per_service = total_containers_per_service / unique_voyages_per_service
 
-    st.write("Unique Voyage Combinations Per Service:")
-    st.write(unique_voyages_per_service)
+    # Combine total and average into one DataFrame
+    service_summary = pd.DataFrame({
+        "Total Containers": total_containers_per_service,
+        "Average per Voyage": average_per_service
+    })
+
+    st.write("Summary of Containers Per Service:")
+    st.write(service_summary)
 
     # Group by SERVICE, Day Number, and Voyage
     filtered_grouped = del_data[del_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
