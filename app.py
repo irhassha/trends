@@ -8,7 +8,7 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 st.title("Container Yard Analysis App")
 
 # Read the data directly from the repository file
-data = pd.read_csv('container_data.csv', sep=';')
+data = pd.read_csv('data.csv', sep=';')
 data['Gate in'] = pd.to_datetime(data['Gate in'], format='%d/%m/%Y %H:%M', errors='coerce')
 data['Day'] = data['Gate in'].dt.day_name()
 data['Day Number'] = (data['Gate in'] - data['Gate in'].min()).dt.days + 1
@@ -34,23 +34,24 @@ st.write("Daily Average:", daily_avg)
 st.header("2. Total and Average per Service (DAY 1 to DAY 7)")
 service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
 if service_option == "REC":
-    # Group by SERVICE and Voyage
     grouped = rec_data.groupby(['SERVICE', 'VOYAGE']).size()
 
-    # Sum containers per Service
-    total_containers_per_service = grouped.groupby('SERVICE').sum()
+    # Apply outlier filtering based on standard deviation
+    filtered_data = grouped.groupby('SERVICE').apply(
+        lambda x: x[(x >= x.mean() - 2 * x.std()) & (x <= x.mean() + 2 * x.std())]
+    )
 
-    # Count unique Voyage combinations per Service
-    unique_voyages_per_service = grouped.groupby('SERVICE').size()
+    # Sum containers per Service
+    total_containers_per_service = filtered_data.groupby('SERVICE').sum()
+
+    # Count unique Voyage combinations per Service (after filtering)
+    unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
 
     st.write("Total Containers Per Service:")
     st.write(total_containers_per_service)
 
     st.write("Unique Voyage Combinations Per Service:")
     st.write(unique_voyages_per_service)
-
-    # Apply outlier filtering based on standard deviation
-    filtered_data = grouped.groupby('SERVICE').apply(lambda x: x[(x >= x.mean() - 2 * x.std()) & (x <= x.mean() + 2 * x.std())])
 
     # Group by SERVICE, Day Number, and Voyage
     filtered_grouped = rec_data[rec_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
@@ -59,29 +60,30 @@ if service_option == "REC":
     # Sum containers per Day Number per Service
     total_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).sum()
 
-    # Count Voyage combinations per Day Number per Service
+    # Count Voyage combinations per Day Number per Service (after filtering)
     voyage_count_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).size()
 
     # Calculate average per day per service
     average_per_day_per_service = (total_per_day / voyage_count_per_day).unstack(fill_value=0)
 else:
-    # Group by SERVICE and Voyage
     grouped = del_data.groupby(['SERVICE', 'VOYAGE']).size()
 
-    # Sum containers per Service
-    total_containers_per_service = grouped.groupby('SERVICE').sum()
+    # Apply outlier filtering based on standard deviation
+    filtered_data = grouped.groupby('SERVICE').apply(
+        lambda x: x[(x >= x.mean() - 2 * x.std()) & (x <= x.mean() + 2 * x.std())]
+    )
 
-    # Count unique Voyage combinations per Service
-    unique_voyages_per_service = grouped.groupby('SERVICE').size()
+    # Sum containers per Service
+    total_containers_per_service = filtered_data.groupby('SERVICE').sum()
+
+    # Count unique Voyage combinations per Service (after filtering)
+    unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
 
     st.write("Total Containers Per Service:")
     st.write(total_containers_per_service)
 
     st.write("Unique Voyage Combinations Per Service:")
     st.write(unique_voyages_per_service)
-
-    # Apply outlier filtering based on standard deviation
-    filtered_data = grouped.groupby('SERVICE').apply(lambda x: x[(x >= x.mean() - 2 * x.std()) & (x <= x.mean() + 2 * x.std())])
 
     # Group by SERVICE, Day Number, and Voyage
     filtered_grouped = del_data[del_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
@@ -90,7 +92,7 @@ else:
     # Sum containers per Day Number per Service
     total_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).sum()
 
-    # Count Voyage combinations per Day Number per Service
+    # Count Voyage combinations per Day Number per Service (after filtering)
     voyage_count_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).size()
 
     # Calculate average per day per service
