@@ -34,8 +34,8 @@ st.write("Daily Average:", daily_avg)
 st.header("2. Average per Service (DAY 1 to DAY 7)")
 service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
 if service_option == "REC":
-    # Group by SERVICE, Day Number, and Vessel (Vessel ID + Voyage)
-    grouped = rec_data.groupby(['SERVICE', 'Day Number', 'VESSEL ID', 'VOYAGE']).size()
+    # Group by SERVICE, Day Number, and Voyage
+    grouped = rec_data.groupby(['SERVICE', 'Day Number', 'VOYAGE']).size()
 
     # Sum containers per Day Number per Service
     total_per_day = grouped.groupby(['SERVICE', 'Day Number']).sum()
