@@ -69,8 +69,14 @@ if service_option == "REC":
     # Calculate total containers per day category
     day_summary = rec_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
 
-    # Add total column based on actual containers
+    # Ensure total containers match total from service_summary
     day_summary['Total'] = day_summary.sum(axis=1)
+    day_summary.loc[:, 'DAY 1':'DAY 7'] = (day_summary.loc[:, 'DAY 1':'DAY 7']
+                                           .div(day_summary['Total'], axis=0)
+                                           .mul(service_summary['Total Containers'], axis=0))
+
+    # Recalculate total to ensure it matches
+    day_summary['Total'] = day_summary.loc[:, 'DAY 1':'DAY 7'].sum(axis=1)
 
     st.write("Summary by Day Category (DAY 1 to DAY 7 - Total Containers):")
     st.write(day_summary)
@@ -111,8 +117,14 @@ else:
     # Calculate total containers per day category
     day_summary = del_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
 
-    # Add total column based on actual containers
+    # Ensure total containers match total from service_summary
     day_summary['Total'] = day_summary.sum(axis=1)
+    day_summary.loc[:, 'DAY 1':'DAY 7'] = (day_summary.loc[:, 'DAY 1':'DAY 7']
+                                           .div(day_summary['Total'], axis=0)
+                                           .mul(service_summary['Total Containers'], axis=0))
+
+    # Recalculate total to ensure it matches
+    day_summary['Total'] = day_summary.loc[:, 'DAY 1':'DAY 7'].sum(axis=1)
 
     st.write("Summary by Day Category (DAY 1 to DAY 7 - Total Containers):")
     st.write(day_summary)
