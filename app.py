@@ -8,7 +8,7 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 st.title("Container Yard Analysis App")
 
 # Read the data directly from the repository file
-data = pd.read_csv('container_data.csv', sep=';')
+data = pd.read_csv('data.csv', sep=';')
 data['Gate in'] = pd.to_datetime(data['Gate in'], format='%d/%m/%Y %H:%M', errors='coerce')
 data['Day'] = data['Gate in'].dt.day_name()
 data['Day Number'] = (data['Gate in'] - data['Gate in'].min()).dt.days + 1
@@ -31,10 +31,10 @@ else:
 st.bar_chart(daily_avg)
 st.write("Daily Average:", daily_avg)
 
-st.header("2. Total and Average per Service (DAY 1 to DAY 7)")
+st.header("2. Total and Average per Service (Based on CATEGORY)")
 service_option = st.selectbox("Choose Movement Type for Service", ["REC", "DEL"])
 if service_option == "REC":
-    grouped = rec_data.groupby(['SERVICE', 'VOYAGE']).size()
+    grouped = rec_data.groupby(['SERVICE', 'CATEGORY']).size()
 
     # Apply outlier filtering based on standard deviation
     filtered_data = grouped.groupby('SERVICE').apply(
@@ -44,35 +44,31 @@ if service_option == "REC":
     # Sum containers per Service
     total_containers_per_service = filtered_data.groupby('SERVICE').sum()
 
-    # Count unique Voyage combinations per Service (after filtering)
-    unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
+    # Count unique CATEGORY combinations per Service (after filtering)
+    unique_categories_per_service = filtered_data.groupby('SERVICE').size()
 
     # Calculate average per service
-    average_per_service = total_containers_per_service / unique_voyages_per_service
+    average_per_service = total_containers_per_service / unique_categories_per_service
 
     # Combine total and average into one DataFrame
     service_summary = pd.DataFrame({
         "Total Containers": total_containers_per_service,
-        "Average per Voyage": average_per_service
+        "Average per CATEGORY": average_per_service
     })
 
     st.write("Summary of Containers Per Service:")
     st.write(service_summary)
 
-    # Group by SERVICE, Day Number, and Voyage
-    filtered_grouped = rec_data[rec_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
-    filtered_grouped = filtered_grouped.groupby(['SERVICE', 'Day Number', 'VOYAGE']).size()
+    # Group by CATEGORY and create summary for DAY 1 to DAY 7
+    rec_data['Day Category'] = rec_data['CATEGORY'].apply(
+        lambda x: 'DAY 1' if x <= 1 else ('DAY 7' if x >= 7 else 'DAY 2-6')
+    )
+    day_summary = rec_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
+    st.write("Summary by Day Category (DAY 1, DAY 2-6, DAY 7):")
+    st.write(day_summary)
 
-    # Sum containers per Day Number per Service
-    total_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).sum()
-
-    # Count Voyage combinations per Day Number per Service (after filtering)
-    voyage_count_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).size()
-
-    # Calculate average per day per service
-    average_per_day_per_service = (total_per_day / voyage_count_per_day).unstack(fill_value=0)
 else:
-    grouped = del_data.groupby(['SERVICE', 'VOYAGE']).size()
+    grouped = del_data.groupby(['SERVICE', 'CATEGORY']).size()
 
     # Apply outlier filtering based on standard deviation
     filtered_data = grouped.groupby('SERVICE').apply(
@@ -82,39 +78,28 @@ else:
     # Sum containers per Service
     total_containers_per_service = filtered_data.groupby('SERVICE').sum()
 
-    # Count unique Voyage combinations per Service (after filtering)
-    unique_voyages_per_service = filtered_data.groupby('SERVICE').size()
+    # Count unique CATEGORY combinations per Service (after filtering)
+    unique_categories_per_service = filtered_data.groupby('SERVICE').size()
 
     # Calculate average per service
-    average_per_service = total_containers_per_service / unique_voyages_per_service
+    average_per_service = total_containers_per_service / unique_categories_per_service
 
     # Combine total and average into one DataFrame
     service_summary = pd.DataFrame({
         "Total Containers": total_containers_per_service,
-        "Average per Voyage": average_per_service
+        "Average per CATEGORY": average_per_service
     })
 
     st.write("Summary of Containers Per Service:")
     st.write(service_summary)
 
-    # Group by SERVICE, Day Number, and Voyage
-    filtered_grouped = del_data[del_data['VOYAGE'].isin(filtered_data.index.get_level_values('VOYAGE'))]
-    filtered_grouped = filtered_grouped.groupby(['SERVICE', 'Day Number', 'VOYAGE']).size()
-
-    # Sum containers per Day Number per Service
-    total_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).sum()
-
-    # Count Voyage combinations per Day Number per Service (after filtering)
-    voyage_count_per_day = filtered_grouped.groupby(['SERVICE', 'Day Number']).size()
-
-    # Calculate average per day per service
-    average_per_day_per_service = (total_per_day / voyage_count_per_day).unstack(fill_value=0)
-
-# Keep only Day 1 to Day 7
-average_per_day_per_service = average_per_day_per_service.iloc[:, :7]
-
-st.write("Average Containers Per Service (Day 1 to Day 7):")
-st.write(average_per_day_per_service)
+    # Group by CATEGORY and create summary for DAY 1 to DAY 7
+    del_data['Day Category'] = del_data['CATEGORY'].apply(
+        lambda x: 'DAY 1' if x <= 1 else ('DAY 7' if x >= 7 else 'DAY 2-6')
+    )
+    day_summary = del_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
+    st.write("Summary by Day Category (DAY 1, DAY 2-6, DAY 7):")
+    st.write(day_summary)
 
 st.header("3. Forecasting REC and DEL")
 forecast_option = st.selectbox("Choose Movement Type for Forecasting", ["REC", "DEL"])
