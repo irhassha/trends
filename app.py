@@ -65,9 +65,17 @@ if service_option == "REC":
     rec_data['Day Category'] = rec_data['CATEGORY'].apply(
         lambda x: 'DAY 1' if x <= 1 else ('DAY 2' if x == 2 else ('DAY 3' if x == 3 else ('DAY 4' if x == 4 else ('DAY 5' if x == 5 else ('DAY 6' if x == 6 else 'DAY 7')))))
     )
+
+    # Calculate average per day category
     day_summary = rec_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
-    st.write("Summary by Day Category (DAY 1 to DAY 7):")
-    st.write(day_summary)
+    vessel_counts_by_day = rec_data.groupby(['SERVICE', 'Day Category'])['VESSEL ID'].nunique().unstack(fill_value=1)
+    day_summary_avg = day_summary.div(vessel_counts_by_day, fill_value=0)
+
+    # Add total column
+    day_summary_avg['Total'] = day_summary_avg.sum(axis=1)
+
+    st.write("Summary by Day Category (DAY 1 to DAY 7 - Average per Vessel):")
+    st.write(day_summary_avg)
 
 else:
     grouped = del_data.groupby(['SERVICE', 'CATEGORY']).size()
@@ -101,9 +109,17 @@ else:
     del_data['Day Category'] = del_data['CATEGORY'].apply(
         lambda x: 'DAY 1' if x <= 1 else ('DAY 2' if x == 2 else ('DAY 3' if x == 3 else ('DAY 4' if x == 4 else ('DAY 5' if x == 5 else ('DAY 6' if x == 6 else 'DAY 7')))))
     )
+
+    # Calculate average per day category
     day_summary = del_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
-    st.write("Summary by Day Category (DAY 1 to DAY 7):")
-    st.write(day_summary)
+    vessel_counts_by_day = del_data.groupby(['SERVICE', 'Day Category'])['VESSEL ID'].nunique().unstack(fill_value=1)
+    day_summary_avg = day_summary.div(vessel_counts_by_day, fill_value=0)
+
+    # Add total column
+    day_summary_avg['Total'] = day_summary_avg.sum(axis=1)
+
+    st.write("Summary by Day Category (DAY 1 to DAY 7 - Average per Vessel):")
+    st.write(day_summary_avg)
 
 st.header("3. Forecasting REC and DEL")
 forecast_option = st.selectbox("Choose Movement Type for Forecasting", ["REC", "DEL"])
