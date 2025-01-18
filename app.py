@@ -44,15 +44,12 @@ if service_option == "REC":
     # Sum containers per Service
     total_containers_per_service = filtered_data.groupby('SERVICE').sum()
 
-    # Count unique CATEGORY combinations per Service (after filtering)
-    unique_categories_per_service = filtered_data.groupby('SERVICE').size()
-
     # Count unique Vessel IDs per Service (after filtering)
     unique_vessels_per_service = rec_data[rec_data['CATEGORY'].isin(filtered_data.index.get_level_values('CATEGORY'))]
     unique_vessels_per_service = unique_vessels_per_service.groupby('SERVICE')['VESSEL ID'].nunique()
 
     # Calculate average per service
-    average_per_service = total_containers_per_service / unique_categories_per_service
+    average_per_service = total_containers_per_service / unique_vessels_per_service
 
     # Combine total, average, and vessel count into one DataFrame
     service_summary = pd.DataFrame({
@@ -83,15 +80,12 @@ else:
     # Sum containers per Service
     total_containers_per_service = filtered_data.groupby('SERVICE').sum()
 
-    # Count unique CATEGORY combinations per Service (after filtering)
-    unique_categories_per_service = filtered_data.groupby('SERVICE').size()
-
     # Count unique Vessel IDs per Service (after filtering)
     unique_vessels_per_service = del_data[del_data['CATEGORY'].isin(filtered_data.index.get_level_values('CATEGORY'))]
     unique_vessels_per_service = unique_vessels_per_service.groupby('SERVICE')['VESSEL ID'].nunique()
 
     # Calculate average per service
-    average_per_service = total_containers_per_service / unique_categories_per_service
+    average_per_service = total_containers_per_service / unique_vessels_per_service
 
     # Combine total, average, and vessel count into one DataFrame
     service_summary = pd.DataFrame({
