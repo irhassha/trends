@@ -47,13 +47,18 @@ if service_option == "REC":
     # Count unique CATEGORY combinations per Service (after filtering)
     unique_categories_per_service = filtered_data.groupby('SERVICE').size()
 
+    # Count unique Vessel IDs per Service (after filtering)
+    unique_vessels_per_service = rec_data[rec_data['CATEGORY'].isin(filtered_data.index.get_level_values('CATEGORY'))]
+    unique_vessels_per_service = unique_vessels_per_service.groupby('SERVICE')['VESSEL ID'].nunique()
+
     # Calculate average per service
     average_per_service = total_containers_per_service / unique_categories_per_service
 
-    # Combine total and average into one DataFrame
+    # Combine total, average, and vessel count into one DataFrame
     service_summary = pd.DataFrame({
         "Total Containers": total_containers_per_service,
-        "Average per CATEGORY": average_per_service
+        "Average per CATEGORY": average_per_service,
+        "Unique Vessels": unique_vessels_per_service
     })
 
     st.write("Summary of Containers Per Service:")
@@ -61,10 +66,10 @@ if service_option == "REC":
 
     # Group by CATEGORY and create summary for DAY 1 to DAY 7
     rec_data['Day Category'] = rec_data['CATEGORY'].apply(
-        lambda x: 'DAY 1' if x <= 1 else ('DAY 7' if x >= 7 else 'DAY 2-6')
+        lambda x: 'DAY 1' if x <= 1 else ('DAY 2' if x == 2 else ('DAY 3' if x == 3 else ('DAY 4' if x == 4 else ('DAY 5' if x == 5 else ('DAY 6' if x == 6 else 'DAY 7')))))
     )
     day_summary = rec_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
-    st.write("Summary by Day Category (DAY 1, DAY 2-6, DAY 7):")
+    st.write("Summary by Day Category (DAY 1 to DAY 7):")
     st.write(day_summary)
 
 else:
@@ -81,13 +86,18 @@ else:
     # Count unique CATEGORY combinations per Service (after filtering)
     unique_categories_per_service = filtered_data.groupby('SERVICE').size()
 
+    # Count unique Vessel IDs per Service (after filtering)
+    unique_vessels_per_service = del_data[del_data['CATEGORY'].isin(filtered_data.index.get_level_values('CATEGORY'))]
+    unique_vessels_per_service = unique_vessels_per_service.groupby('SERVICE')['VESSEL ID'].nunique()
+
     # Calculate average per service
     average_per_service = total_containers_per_service / unique_categories_per_service
 
-    # Combine total and average into one DataFrame
+    # Combine total, average, and vessel count into one DataFrame
     service_summary = pd.DataFrame({
         "Total Containers": total_containers_per_service,
-        "Average per CATEGORY": average_per_service
+        "Average per CATEGORY": average_per_service,
+        "Unique Vessels": unique_vessels_per_service
     })
 
     st.write("Summary of Containers Per Service:")
@@ -95,10 +105,10 @@ else:
 
     # Group by CATEGORY and create summary for DAY 1 to DAY 7
     del_data['Day Category'] = del_data['CATEGORY'].apply(
-        lambda x: 'DAY 1' if x <= 1 else ('DAY 7' if x >= 7 else 'DAY 2-6')
+        lambda x: 'DAY 1' if x <= 1 else ('DAY 2' if x == 2 else ('DAY 3' if x == 3 else ('DAY 4' if x == 4 else ('DAY 5' if x == 5 else ('DAY 6' if x == 6 else 'DAY 7')))))
     )
     day_summary = del_data.groupby(['SERVICE', 'Day Category']).size().unstack(fill_value=0)
-    st.write("Summary by Day Category (DAY 1, DAY 2-6, DAY 7):")
+    st.write("Summary by Day Category (DAY 1 to DAY 7):")
     st.write(day_summary)
 
 st.header("3. Forecasting REC and DEL")
